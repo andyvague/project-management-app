@@ -1,0 +1,22 @@
+{
+  "name": "project-management-app",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "frontend",
+    "backend"
+  ],
+  "scripts": {
+    "dev": "concurrently \"yarn workspace backend dev\" \"yarn workspace frontend dev\"",
+    "build": "yarn workspace backend build && yarn workspace frontend build",
+    "start": "concurrently \"yarn workspace backend start\" \"yarn workspace frontend start\"",
+    "install:all": "yarn install && yarn workspace backend install && yarn workspace frontend install"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "yarn": ">=1.22.0"
+  }
+} 
