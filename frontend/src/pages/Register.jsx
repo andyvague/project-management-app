@@ -15,7 +15,8 @@ import { useAuth } from '../contexts/AuthContext'
 
 const Register = () => {
   const [formData, setFormData] = useState({
-    username: '',
+    firstName: '',
+    lastName: '',
     email: '',
     password: '',
     confirmPassword: ''
@@ -30,30 +31,27 @@ const Register = () => {
   const validateForm = () => {
     const newErrors = {}
 
-    if (!formData.username.trim()) {
-      newErrors.username = 'Username is required'
-    } else if (formData.username.length < 3) {
-      newErrors.username = 'Username must be at least 3 characters'
+    if (!formData.firstName.trim()) {
+      newErrors.firstName = 'First name is required'
     }
-
+    if (!formData.lastName.trim()) {
+      newErrors.lastName = 'Last name is required'
+    }
     if (!formData.email.trim()) {
       newErrors.email = 'Email is required'
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
       newErrors.email = 'Email is invalid'
     }
-
     if (!formData.password) {
       newErrors.password = 'Password is required'
     } else if (formData.password.length < 6) {
       newErrors.password = 'Password must be at least 6 characters'
     }
-
     if (!formData.confirmPassword) {
       newErrors.confirmPassword = 'Please confirm your password'
     } else if (formData.password !== formData.confirmPassword) {
       newErrors.confirmPassword = 'Passwords do not match'
     }
-
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
   }
@@ -64,7 +62,6 @@ const Register = () => {
       ...prev,
       [name]: value
     }))
-    // Clear error when user starts typing
     if (errors[name]) {
       setErrors(prev => ({
         ...prev,
@@ -76,15 +73,14 @@ const Register = () => {
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
-
     if (!validateForm()) {
       return
     }
-
     setLoading(true)
     try {
       await register({
-        username: formData.username,
+        firstName: formData.firstName,
+        lastName: formData.lastName,
         email: formData.email,
         password: formData.password
       })
@@ -170,15 +166,36 @@ const Register = () => {
             margin="normal"
             required
             fullWidth
-            id="username"
-            label="Username"
-            name="username"
-            autoComplete="username"
+            id="firstName"
+            label="First Name"
+            name="firstName"
+            autoComplete="given-name"
             autoFocus
-            value={formData.username}
+            value={formData.firstName}
             onChange={handleChange}
-            error={!!errors.username}
-            helperText={errors.username}
+            error={!!errors.firstName}
+            helperText={errors.firstName}
+            sx={{
+              '& .MuiOutlinedInput-root': {
+                borderRadius: 2,
+                '&:hover fieldset': {
+                  borderColor: theme.palette.primary.main,
+                },
+              },
+            }}
+          />
+          <TextField
+            margin="normal"
+            required
+            fullWidth
+            id="lastName"
+            label="Last Name"
+            name="lastName"
+            autoComplete="family-name"
+            value={formData.lastName}
+            onChange={handleChange}
+            error={!!errors.lastName}
+            helperText={errors.lastName}
             sx={{
               '& .MuiOutlinedInput-root': {
                 borderRadius: 2,

@@ -32,6 +32,8 @@ import {
   useTheme,
   Tooltip
 } from '@mui/material'
+// Import the TaskForm component for creating/editing tasks
+import TaskForm from '../components/TaskForm'
 import {
   Edit as EditIcon,
   Delete as DeleteIcon,
@@ -62,6 +64,11 @@ const ProjectDetail = () => {
   const [error, setError] = useState('')
   const [editDialogOpen, setEditDialogOpen] = useState(false)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  
+  // Task form state management
+  const [taskFormOpen, setTaskFormOpen] = useState(false)
+  const [editingTask, setEditingTask] = useState(null)
+  
   const [editForm, setEditForm] = useState({})
 
   // Status colors
@@ -327,10 +334,11 @@ const ProjectDetail = () => {
               <Typography variant="h6" fontWeight={600}>
                 Tasks ({project.tasks?.length || 0})
               </Typography>
+              {/* Add Task Button - Opens task creation form */}
               <Button
                 variant="contained"
                 startIcon={<AddIcon />}
-                onClick={() => navigate(`/projects/${id}/tasks/new`)}
+                onClick={() => setTaskFormOpen(true)}
               >
                 Add Task
               </Button>
@@ -608,6 +616,20 @@ const ProjectDetail = () => {
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* Task Form Dialog - For creating and editing tasks */}
+      <TaskForm
+        open={taskFormOpen}
+        onClose={() => {
+          setTaskFormOpen(false)
+          setEditingTask(null)
+        }}
+        task={editingTask}
+        projectId={id}
+        onSuccess={() => {
+          fetchProject() // Refresh project data after task changes
+        }}
+      />
     </Box>
   )
 }
