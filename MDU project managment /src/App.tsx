@@ -1,4 +1,4 @@
-import React from 'react';
+
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import CssBaseline from '@mui/material/CssBaseline';
 import { Box } from '@mui/material';
@@ -19,6 +19,7 @@ import { BuildingProvider } from './context/BuildingContext';
 import { TaskProvider } from './context/TaskContext';
 import { DocumentProvider } from './context/DocumentContext';
 import { ScheduleProvider } from './context/ScheduleContext';
+import { MonkeyProvider } from './context/MonkeyContext';
 
 function App() {
   return (
@@ -29,20 +30,22 @@ function App() {
           <TaskProvider>
             <DocumentProvider>
               <ScheduleProvider>
-                <Router>
-                  <Box sx={{ display: 'flex', minHeight: '100vh' }}>
-                    <Layout>
-                      <Routes>
-                        <Route path="/" element={<Dashboard />} />
-                        <Route path="/buildings" element={<Buildings />} />
-                        <Route path="/buildings/:id" element={<BuildingDetail />} />
-                        <Route path="/tasks" element={<Tasks />} />
-                        <Route path="/documents" element={<Documents />} />
-                        <Route path="/schedule" element={<Schedule />} />
-                      </Routes>
-                    </Layout>
-                  </Box>
-                </Router>
+                <MonkeyProvider>
+                  <Router>
+                    <Box sx={{ display: 'flex', minHeight: '100vh' }}>
+                      <Layout>
+                        <Routes>
+                          <Route path="/" element={<Dashboard />} />
+                          <Route path="/buildings" element={<Buildings />} />
+                          <Route path="/buildings/:id" element={<BuildingDetail />} />
+                          <Route path="/tasks" element={<Tasks />} />
+                          <Route path="/documents" element={<Documents />} />
+                          <Route path="/schedule" element={<Schedule />} />
+                        </Routes>
+                      </Layout>
+                    </Box>
+                  </Router>
+                </MonkeyProvider>
               </ScheduleProvider>
             </DocumentProvider>
           </TaskProvider>

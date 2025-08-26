@@ -31,6 +31,8 @@ import { useThemeContext } from '../../context/ThemeContext';
 import ThemeSwitcher from '../ThemeSwitcher/ThemeSwitcher';
 import MonkeybrainsLogo from '../Branding/MonkeybrainsLogo';
 import Footer from '../Layout/Footer';
+import AnimatedMonkeys from '../AnimatedMonkeys';
+import MonkeyToggle from '../AnimatedMonkeys/MonkeyToggle';
 
 const drawerWidth = 264; // Increased by ~10% for better spacing
 
@@ -111,6 +113,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 
   return (
     <Box sx={{ display: 'flex' }}>
+      <AnimatedMonkeys />
       <AppBar
         position="fixed"
         sx={{
@@ -135,6 +138,11 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           
           {/* Dark Mode Toggle */}
           <ThemeSwitcher size="medium" />
+          
+          {/* Show Monkeys Button */}
+          <Box sx={{ ml: 2 }}>
+            <MonkeyToggle />
+          </Box>
         </Toolbar>
       </AppBar>
 
