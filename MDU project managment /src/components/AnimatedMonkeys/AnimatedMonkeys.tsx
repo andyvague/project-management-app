@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Box, keyframes } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import { useMonkeyContext } from '../../context/MonkeyContext';
@@ -93,9 +93,35 @@ const AnimatedMonkeys: React.FC<AnimatedMonkeysProps> = () => {
   const theme = useTheme();
   // Get monkey visibility state from context
   const { showMonkeys } = useMonkeyContext();
+  
+  // State for tracking clicked monkeys and fun interactions
+  const [clickedMonkeys, setClickedMonkeys] = useState<Set<number>>(new Set());
+  const [showClickEffect, setShowClickEffect] = useState<{id: number, x: number, y: number} | null>(null);
 
   // Don't render anything if monkeys are hidden
   if (!showMonkeys) return null;
+
+  // Handle monkey click with fun effects
+  const handleMonkeyClick = (monkeyId: number, event: React.MouseEvent) => {
+    // Add to clicked set
+    setClickedMonkeys((prev: Set<number>) => new Set(prev).add(monkeyId));
+    
+    // Show click effect
+    setShowClickEffect({ id: monkeyId, x: event.clientX, y: event.clientY });
+    
+    // Hide click effect after animation
+    setTimeout(() => setShowClickEffect(null), 1000);
+    
+    // Fun console message
+    const messages = [
+      `🐵 Monkey ${monkeyId} says: "Ouch! That tickles!"`,
+      `🐵 Monkey ${monkeyId} giggles: "Stop it, you're making me laugh!"`,
+      `🐵 Monkey ${monkeyId} exclaims: "Wheeee! I love being clicked!"`,
+      `🐵 Monkey ${monkeyId} cheers: "You found me! High five! 🖐️"`,
+      `🐵 Monkey ${monkeyId} laughs: "Haha! You're the best clicker ever!"`
+    ];
+    console.log(messages[monkeyId % messages.length]);
+  };
 
   return (
     <Box
@@ -106,7 +132,7 @@ const AnimatedMonkeys: React.FC<AnimatedMonkeysProps> = () => {
         right: 0,
         height: '80px',
         zIndex: 9999,
-        pointerEvents: 'none',
+        pointerEvents: 'auto',
         overflow: 'hidden',
       }}
     >
@@ -125,13 +151,14 @@ const AnimatedMonkeys: React.FC<AnimatedMonkeysProps> = () => {
           animationDelay: '0s',    // Start immediately
         }}
       >
-        {/* Monkey circle with emoji and label */}
+        {/* Monkey circle with emoji and label - Clickable! */}
         <Box
+          onClick={(e) => handleMonkeyClick(1, e)}
           sx={{
             fontSize: '3rem',      // Large emoji size
             animation: `${bounce} 0.6s ease-in-out infinite`,  // Bouncing effect
             animationDelay: '0.1s', // Slight delay for natural feel
-            backgroundColor: theme.palette.primary.main,  // Primary green color
+            backgroundColor: clickedMonkeys.has(1) ? '#FFD700' : theme.palette.primary.main,  // Gold when clicked
             color: 'white',        // White emoji and text
             borderRadius: '50%',   // Perfect circle shape
             width: '80px',         // Circle width
@@ -139,9 +166,18 @@ const AnimatedMonkeys: React.FC<AnimatedMonkeysProps> = () => {
             display: 'flex',       // Flexbox for centering content
             alignItems: 'center',  // Center vertically
             justifyContent: 'center', // Center horizontally
-            boxShadow: '0 4px 8px rgba(0,0,0,0.3)', // Subtle shadow
-            border: '3px solid white', // White border for contrast
+            boxShadow: clickedMonkeys.has(1) ? '0 8px 16px rgba(255,215,0,0.6)' : '0 4px 8px rgba(0,0,0,0.3)', // Glowing when clicked
+            border: clickedMonkeys.has(1) ? '4px solid #FFD700' : '3px solid white', // Thicker gold border when clicked
             flexDirection: 'column', // Stack emoji above label
+            cursor: 'pointer',     // Show pointer cursor
+            transition: 'all 0.3s ease', // Smooth transitions
+            '&:hover': {
+              transform: 'scale(1.1)', // Grow on hover
+              boxShadow: '0 6px 12px rgba(0,0,0,0.4)', // Enhanced shadow on hover
+            },
+            '&:active': {
+              transform: 'scale(0.95)', // Shrink when clicked
+            },
           }}
         >
           <Box sx={{ fontSize: '2rem' }}>🐵</Box>  {/* Monkey emoji */}
@@ -164,13 +200,14 @@ const AnimatedMonkeys: React.FC<AnimatedMonkeysProps> = () => {
           animationDelay: '3s',    // Start after 3 seconds
         }}
       >
-        {/* Monkey circle with emoji and label */}
+        {/* Monkey circle with emoji and label - Clickable! */}
         <Box
+          onClick={(e) => handleMonkeyClick(2, e)}
           sx={{
             fontSize: '3.2rem',    // Large emoji size
             animation: `${swing} 0.8s ease-in-out infinite`,  // Swinging effect
             animationDelay: '0.2s', // Slight delay for natural feel
-            backgroundColor: theme.palette.secondary.main,  // Secondary orange color
+            backgroundColor: clickedMonkeys.has(2) ? '#FFD700' : theme.palette.secondary.main,  // Gold when clicked
             color: 'white',        // White emoji and text
             borderRadius: '50%',   // Perfect circle shape
             width: '65px',         // Circle width
@@ -179,8 +216,17 @@ const AnimatedMonkeys: React.FC<AnimatedMonkeysProps> = () => {
             alignItems: 'center',  // Center vertically
             justifyContent: 'center', // Center horizontally
             flexDirection: 'column', // Stack emoji above label
-            boxShadow: '0 4px 8px rgba(0,0,0,0.3)', // Subtle shadow
-            border: '3px solid white', // White border for contrast
+            boxShadow: clickedMonkeys.has(2) ? '0 8px 16px rgba(255,215,0,0.6)' : '0 4px 8px rgba(0,0,0,0.3)', // Glowing when clicked
+            border: clickedMonkeys.has(2) ? '4px solid #FFD700' : '3px solid white', // Thicker gold border when clicked
+            cursor: 'pointer',     // Show pointer cursor
+            transition: 'all 0.3s ease', // Smooth transitions
+            '&:hover': {
+              transform: 'scale(1.1)', // Grow on hover
+              boxShadow: '0 6px 12px rgba(0,0,0,0.4)', // Enhanced shadow on hover
+            },
+            '&:active': {
+              transform: 'scale(0.95)', // Shrink when clicked
+            },
           }}
         >
           🐵
@@ -306,6 +352,41 @@ const AnimatedMonkeys: React.FC<AnimatedMonkeysProps> = () => {
       </Box>
 
       {/* 
+        Monkey Click Counter - Fun status indicator
+        Shows how many monkeys have been discovered and clicked
+        - Displays current progress
+        - Encourages users to find all monkeys
+        - Adds gamification element
+      */}
+      {clickedMonkeys.size > 0 && (
+        <Box
+          sx={{
+            position: 'absolute',
+            top: '10px',
+            left: '10px',
+            backgroundColor: 'rgba(255,255,255,0.95)',
+            color: theme.palette.text.primary,
+            padding: '8px 12px',
+            borderRadius: '20px',
+            fontSize: '0.8rem',
+            fontWeight: 'bold',
+            border: `2px solid ${theme.palette.primary.main}`,
+            zIndex: 10000,
+            boxShadow: '0 4px 8px rgba(0,0,0,0.2)',
+            animation: 'bounceIn 0.6s ease-out',
+            '@keyframes bounceIn': {
+              '0%': { transform: 'scale(0)', opacity: 0 },
+              '50%': { transform: 'scale(1.1)' },
+              '100%': { transform: 'scale(1)', opacity: 1 },
+            },
+          }}
+        >
+          🐵 Monkeys Found: {clickedMonkeys.size}/5
+          {clickedMonkeys.size === 5 && ' 🎉 All Monkeys Discovered!'}
+        </Box>
+      )}
+
+      {/* 
         Trail Effects - Visual enhancement for the monkey parade
         Creates a subtle colored trail that follows the monkeys
         - Positioned below the monkeys for visual depth
@@ -327,6 +408,42 @@ const AnimatedMonkeys: React.FC<AnimatedMonkeysProps> = () => {
           boxShadow: '0 2px 4px rgba(0,0,0,0.2)', // Subtle shadow for depth
         }}
       />
+      
+      {/* Click Effect - Fun visual feedback when monkeys are clicked */}
+      {showClickEffect && (
+        <Box
+          sx={{
+            position: 'fixed',
+            left: showClickEffect.x - 50,
+            top: showClickEffect.y - 50,
+            width: '100px',
+            height: '100px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: '2rem',
+            zIndex: 10000,
+            pointerEvents: 'none',
+            animation: 'clickEffect 1s ease-out forwards',
+            '@keyframes clickEffect': {
+              '0%': {
+                transform: 'scale(0) rotate(0deg)',
+                opacity: 1,
+              },
+              '50%': {
+                transform: 'scale(1.5) rotate(180deg)',
+                opacity: 0.8,
+              },
+              '100%': {
+                transform: 'scale(2) rotate(360deg)',
+                opacity: 0,
+              },
+            },
+          }}
+        >
+          🎉
+        </Box>
+      )}
     </Box>
   );
 };
