@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useReducer, ReactNode, useEffect } from 'react';
 import { Building } from '../types';
-import { loadSampleData } from '../data/dataLoader';
+import { buildingsApi, CreateBuildingData, UpdateBuildingData } from '../services/api';
 
 interface BuildingState {
   buildings: Building[];
@@ -57,10 +57,11 @@ const buildingReducer = (state: BuildingState, action: BuildingAction): Building
 interface BuildingContextType {
   state: BuildingState;
   dispatch: React.Dispatch<BuildingAction>;
-  addBuilding: (building: Omit<Building, 'id' | 'createdAt' | 'updatedAt'>) => void;
-  updateBuilding: (id: string, updates: Partial<Building>) => void;
-  deleteBuilding: (id: string) => void;
+  addBuilding: (building: CreateBuildingData) => Promise<void>;
+  updateBuilding: (id: string, updates: UpdateBuildingData) => Promise<void>;
+  deleteBuilding: (id: string) => Promise<void>;
   getBuildingById: (id: string) => Building | undefined;
+  refreshBuildings: () => Promise<void>;
 }
 
 const BuildingContext = createContext<BuildingContextType | undefined>(undefined);
@@ -80,39 +81,72 @@ interface BuildingProviderProps {
 export const BuildingProvider: React.FC<BuildingProviderProps> = ({ children }) => {
   const [state, dispatch] = useReducer(buildingReducer, initialState);
 
-  // Load sample data on mount
+  // Load buildings from API on mount
   useEffect(() => {
-    if (state.buildings.length === 0) {
-      const { buildings } = loadSampleData();
-      // Set buildings directly instead of calling addBuilding to preserve IDs
+    refreshBuildings();
+  }, []);
+
+  const refreshBuildings = async () => {
+    dispatch({ type: 'SET_LOADING', payload: true });
+    dispatch({ type: 'SET_ERROR', payload: null });
+    
+    try {
+      const buildings = await buildingsApi.getAll();
       dispatch({ type: 'SET_BUILDINGS', payload: buildings });
+    } catch (error) {
+      console.error('Failed to load buildings:', error);
+      dispatch({ type: 'SET_ERROR', payload: error instanceof Error ? error.message : 'Failed to load buildings' });
+    } finally {
+      dispatch({ type: 'SET_LOADING', payload: false });
     }
-  }, [state.buildings.length]);
-
-  const addBuilding = (buildingData: Omit<Building, 'id' | 'createdAt' | 'updatedAt'>) => {
-    const newBuilding: Building = {
-      ...buildingData,
-      id: `building-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-    dispatch({ type: 'ADD_BUILDING', payload: newBuilding });
   };
 
-  const updateBuilding = (id: string, updates: Partial<Building>) => {
-    const building = state.buildings.find(b => b.id === id);
-    if (building) {
-      const updatedBuilding: Building = {
-        ...building,
-        ...updates,
-        updatedAt: new Date(),
-      };
+  const addBuilding = async (buildingData: CreateBuildingData) => {
+    dispatch({ type: 'SET_LOADING', payload: true });
+    dispatch({ type: 'SET_ERROR', payload: null });
+    
+    try {
+      const newBuilding = await buildingsApi.create(buildingData);
+      dispatch({ type: 'ADD_BUILDING', payload: newBuilding });
+    } catch (error) {
+      console.error('Failed to create building:', error);
+      dispatch({ type: 'SET_ERROR', payload: error instanceof Error ? error.message : 'Failed to create building' });
+      throw error;
+    } finally {
+      dispatch({ type: 'SET_LOADING', payload: false });
+    }
+  };
+
+  const updateBuilding = async (id: string, updates: UpdateBuildingData) => {
+    dispatch({ type: 'SET_LOADING', payload: true });
+    dispatch({ type: 'SET_ERROR', payload: null });
+    
+    try {
+      const updatedBuilding = await buildingsApi.update(id, updates);
       dispatch({ type: 'UPDATE_BUILDING', payload: updatedBuilding });
+    } catch (error) {
+      console.error('Failed to update building:', error);
+      dispatch({ type: 'SET_ERROR', payload: error instanceof Error ? error.message : 'Failed to update building' });
+      throw error;
+    } finally {
+      dispatch({ type: 'SET_LOADING', payload: false });
     }
   };
 
-  const deleteBuilding = (id: string) => {
-    dispatch({ type: 'DELETE_BUILDING', payload: id });
+  const deleteBuilding = async (id: string) => {
+    dispatch({ type: 'SET_LOADING', payload: true });
+    dispatch({ type: 'SET_ERROR', payload: null });
+    
+    try {
+      await buildingsApi.delete(id);
+      dispatch({ type: 'DELETE_BUILDING', payload: id });
+    } catch (error) {
+      console.error('Failed to delete building:', error);
+      dispatch({ type: 'SET_ERROR', payload: error instanceof Error ? error.message : 'Failed to delete building' });
+      throw error;
+    } finally {
+      dispatch({ type: 'SET_LOADING', payload: false });
+    }
   };
 
   const getBuildingById = (id: string) => {
@@ -126,6 +160,7 @@ export const BuildingProvider: React.FC<BuildingProviderProps> = ({ children }) 
     updateBuilding,
     deleteBuilding,
     getBuildingById,
+    refreshBuildings,
   };
 
   return (

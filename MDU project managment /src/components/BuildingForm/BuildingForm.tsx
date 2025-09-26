@@ -8,7 +8,6 @@ import {
   MenuItem,
   Box,
   Button,
-  Typography,
 } from '@mui/material';
 import { Building, BuildingStatus } from '../../types';
 
@@ -20,18 +19,18 @@ interface BuildingFormProps {
 
 const BuildingForm: React.FC<BuildingFormProps> = ({ building, onSubmit, onCancel }) => {
   const [formData, setFormData] = useState({
+    name: building?.name || '',
     address: building?.address || '',
-    city: building?.city || '',
-    state: building?.state || '',
-    zipCode: building?.zipCode || '',
+    buildingType: (building?.buildingType as Building['buildingType']) || 'apartment_complex',
+    totalUnits: typeof building?.totalUnits === 'number' ? String(building?.totalUnits) : '',
     status: (building?.status as BuildingStatus) || 'planning',
-    buildoutStartDate: building?.buildoutStartDate 
+    buildoutStartDate: building?.buildoutStartDate
       ? building.buildoutStartDate.toISOString().split('T')[0]
       : new Date().toISOString().split('T')[0],
     estimatedCompletion: building?.estimatedCompletion
       ? building.estimatedCompletion.toISOString().split('T')[0]
       : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-    projectManager: building?.projectManager || '',
+    propertyManager: building?.propertyManager || '',
     notes: building?.notes || '',
   });
 
@@ -40,20 +39,17 @@ const BuildingForm: React.FC<BuildingFormProps> = ({ building, onSubmit, onCance
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
 
+    if (!formData.name.trim()) {
+      newErrors.name = 'Name is required';
+    }
     if (!formData.address.trim()) {
       newErrors.address = 'Address is required';
     }
-    if (!formData.city.trim()) {
-      newErrors.city = 'City is required';
+    if (!formData.propertyManager.trim()) {
+      newErrors.propertyManager = 'Property manager is required';
     }
-    if (!formData.state.trim()) {
-      newErrors.state = 'State is required';
-    }
-    if (!formData.zipCode.trim()) {
-      newErrors.zipCode = 'ZIP code is required';
-    }
-    if (!formData.projectManager.trim()) {
-      newErrors.projectManager = 'Project manager is required';
+    if (!formData.totalUnits || Number.isNaN(Number(formData.totalUnits)) || Number(formData.totalUnits) <= 0) {
+      newErrors.totalUnits = 'Enter a valid number of units';
     }
     if (new Date(formData.buildoutStartDate) >= new Date(formData.estimatedCompletion)) {
       newErrors.estimatedCompletion = 'Estimated completion must be after start date';
@@ -67,16 +63,28 @@ const BuildingForm: React.FC<BuildingFormProps> = ({ building, onSubmit, onCance
     e.preventDefault();
     if (validateForm()) {
       onSubmit({
+        name: formData.name.trim(),
         address: formData.address.trim(),
-        city: formData.city.trim(),
-        state: formData.state.trim(),
-        zipCode: formData.zipCode.trim(),
+        buildingType: formData.buildingType,
+        totalUnits: Number(formData.totalUnits),
         status: formData.status,
         buildoutStartDate: new Date(formData.buildoutStartDate),
         estimatedCompletion: new Date(formData.estimatedCompletion),
-        projectManager: formData.projectManager.trim(),
+        propertyManager: formData.propertyManager.trim(),
+        // The remaining required fields will be populated with sensible defaults in context
         notes: formData.notes.trim(),
-      });
+        propertyManagerContact: '',
+        propertyManagerEmail: '',
+        fiberAccess: 'pending',
+        rooftopAccess: 'available',
+        basementAccess: 'available',
+        electricalRoomAccess: 'available',
+        priority: 'medium',
+        estimatedRevenue: 0,
+        actualRevenue: 0,
+        buildoutStage: 'planning',
+        actualCompletion: undefined,
+      } as Omit<Building, 'id' | 'createdAt' | 'updatedAt'>);
     }
   };
 
@@ -87,17 +95,23 @@ const BuildingForm: React.FC<BuildingFormProps> = ({ building, onSubmit, onCance
     }
   };
 
-  const states = [
-    'AL', 'AK', 'AZ', 'AR', 'CA', 'CO', 'CT', 'DE', 'FL', 'GA',
-    'HI', 'ID', 'IL', 'IN', 'IA', 'KS', 'KY', 'LA', 'ME', 'MD',
-    'MA', 'MI', 'MN', 'MS', 'MO', 'MT', 'NE', 'NV', 'NH', 'NJ',
-    'NM', 'NY', 'NC', 'ND', 'OH', 'OK', 'OR', 'PA', 'RI', 'SC',
-    'SD', 'TN', 'TX', 'UT', 'VT', 'VA', 'WA', 'WV', 'WI', 'WY'
-  ];
+  // no-op
 
   return (
     <Box component="form" onSubmit={handleSubmit} sx={{ mt: 2 }}>
       <Grid container spacing={3}>
+        <Grid item xs={12}>
+          <TextField
+            fullWidth
+            label="Name"
+            value={formData.name}
+            onChange={(e) => handleChange('name', e.target.value)}
+            error={!!errors.name}
+            helperText={errors.name}
+            required
+          />
+        </Grid>
+
         <Grid item xs={12}>
           <TextField
             fullWidth
@@ -109,49 +123,37 @@ const BuildingForm: React.FC<BuildingFormProps> = ({ building, onSubmit, onCance
             required
           />
         </Grid>
-        
-        <Grid item xs={12} md={4}>
-          <TextField
-            fullWidth
-            label="City"
-            value={formData.city}
-            onChange={(e) => handleChange('city', e.target.value)}
-            error={!!errors.city}
-            helperText={errors.city}
-            required
-          />
-        </Grid>
-        
-        <Grid item xs={12} md={4}>
-          <FormControl fullWidth error={!!errors.state}>
-            <InputLabel>State</InputLabel>
+
+        <Grid item xs={12} md={6}>
+          <FormControl fullWidth>
+            <InputLabel>Building Type</InputLabel>
             <Select
-              value={formData.state}
-              label="State"
-              onChange={(e) => handleChange('state', e.target.value)}
-              required
+              value={formData.buildingType}
+              label="Building Type"
+              onChange={(e) => handleChange('buildingType', e.target.value)}
             >
-              {states.map((state) => (
-                <MenuItem key={state} value={state}>
-                  {state}
-                </MenuItem>
-              ))}
+              <MenuItem value="apartment_complex">Apartment Complex</MenuItem>
+              <MenuItem value="condominium">Condominium</MenuItem>
+              <MenuItem value="mixed_use">Mixed Use</MenuItem>
+              <MenuItem value="student_housing">Student Housing</MenuItem>
             </Select>
           </FormControl>
         </Grid>
-        
-        <Grid item xs={12} md={4}>
+
+        <Grid item xs={12} md={6}>
           <TextField
             fullWidth
-            label="ZIP Code"
-            value={formData.zipCode}
-            onChange={(e) => handleChange('zipCode', e.target.value)}
-            error={!!errors.zipCode}
-            helperText={errors.zipCode}
+            label="Total Units"
+            type="number"
+            inputProps={{ min: 1 }}
+            value={formData.totalUnits}
+            onChange={(e) => handleChange('totalUnits', e.target.value)}
+            error={!!errors.totalUnits}
+            helperText={errors.totalUnits}
             required
           />
         </Grid>
-        
+
         <Grid item xs={12} md={6}>
           <FormControl fullWidth>
             <InputLabel>Status</InputLabel>
@@ -168,19 +170,19 @@ const BuildingForm: React.FC<BuildingFormProps> = ({ building, onSubmit, onCance
             </Select>
           </FormControl>
         </Grid>
-        
+
         <Grid item xs={12} md={6}>
           <TextField
             fullWidth
-            label="Project Manager"
-            value={formData.projectManager}
-            onChange={(e) => handleChange('projectManager', e.target.value)}
-            error={!!errors.projectManager}
-            helperText={errors.projectManager}
+            label="Property Manager"
+            value={formData.propertyManager}
+            onChange={(e) => handleChange('propertyManager', e.target.value)}
+            error={!!errors.propertyManager}
+            helperText={errors.propertyManager}
             required
           />
         </Grid>
-        
+
         <Grid item xs={12} md={6}>
           <TextField
             fullWidth
@@ -192,7 +194,7 @@ const BuildingForm: React.FC<BuildingFormProps> = ({ building, onSubmit, onCance
             required
           />
         </Grid>
-        
+
         <Grid item xs={12} md={6}>
           <TextField
             fullWidth
@@ -206,7 +208,7 @@ const BuildingForm: React.FC<BuildingFormProps> = ({ building, onSubmit, onCance
             required
           />
         </Grid>
-        
+
         <Grid item xs={12}>
           <TextField
             fullWidth
@@ -219,7 +221,7 @@ const BuildingForm: React.FC<BuildingFormProps> = ({ building, onSubmit, onCance
           />
         </Grid>
       </Grid>
-      
+
       <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2, mt: 3 }}>
         {onCancel && (
           <Button variant="outlined" onClick={onCancel}>

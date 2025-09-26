@@ -13,18 +13,14 @@ import {
   InputLabel,
   Select,
   MenuItem,
-  IconButton,
   Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
-  FormControlLabel,
-  Switch,
 } from '@mui/material';
 import {
   Add as AddIcon,
   Search as SearchIcon,
-  FilterList as FilterIcon,
   Business as BusinessIcon,
   LocationOn as LocationIcon,
   Person as PersonIcon,
@@ -37,14 +33,18 @@ import BuildingForm from '../../components/BuildingForm/BuildingForm';
 
 const Buildings: React.FC = () => {
   const navigate = useNavigate();
-  const { state, addBuilding } = useBuildingContext();
+  const { state, addBuilding, updateBuilding, deleteBuilding } = useBuildingContext();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [showFilters, setShowFilters] = useState(false);
+  // const [showFilters, setShowFilters] = useState(false);
   const [openDialog, setOpenDialog] = useState(false);
   const [sortBy, setSortBy] = useState<'address' | 'status' | 'updatedAt'>('updatedAt');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [isSearching, setIsSearching] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [buildingBeingEdited, setBuildingBeingEdited] = useState<Building | null>(null);
+  const [buildingToDelete, setBuildingToDelete] = useState<Building | null>(null);
 
   const filteredBuildings = state.buildings
     .filter((building) => {
@@ -92,9 +92,49 @@ const Buildings: React.FC = () => {
     }
   };
 
-  const handleAddBuilding = (buildingData: Omit<Building, 'id' | 'createdAt' | 'updatedAt'>) => {
-    addBuilding(buildingData);
-    setOpenDialog(false);
+  const handleAddBuilding = async (buildingData: Omit<Building, 'id' | 'createdAt' | 'updatedAt'>) => {
+    try {
+      await addBuilding(buildingData);
+      setOpenDialog(false);
+    } catch (error) {
+      // Error is handled by context
+      console.error('Failed to add building:', error);
+    }
+  };
+
+  const handleEditClick = (building: Building) => {
+    setBuildingBeingEdited(building);
+    setEditDialogOpen(true);
+  };
+
+  const handleUpdateBuilding = async (updated: Omit<Building, 'id' | 'createdAt' | 'updatedAt'>) => {
+    if (!buildingBeingEdited) return;
+    try {
+      await updateBuilding(buildingBeingEdited.id, updated as Partial<Building>);
+      setEditDialogOpen(false);
+      setBuildingBeingEdited(null);
+    } catch (error) {
+      // Error is handled by context
+      console.error('Failed to update building:', error);
+    }
+  };
+
+  const handleDeleteClick = (building: Building) => {
+    setBuildingToDelete(building);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (buildingToDelete) {
+      try {
+        await deleteBuilding(buildingToDelete.id);
+        setDeleteDialogOpen(false);
+        setBuildingToDelete(null);
+      } catch (error) {
+        // Error is handled by context
+        console.error('Failed to delete building:', error);
+      }
+    }
   };
 
   const getProgressPercentage = (building: Building) => {
@@ -428,6 +468,7 @@ const Buildings: React.FC = () => {
                     </Typography>
                   </Box>
                   
+                <Box sx={{ display: 'flex', gap: 1 }}>
                   <Button
                     size="small"
                     variant="outlined"
@@ -436,8 +477,30 @@ const Buildings: React.FC = () => {
                       navigate(`/buildings/${building.id}`);
                     }}
                   >
-                    View Details
+                    View
                   </Button>
+                  <Button
+                    size="small"
+                    variant="outlined"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleEditClick(building);
+                    }}
+                  >
+                    Edit
+                  </Button>
+                  <Button
+                    size="small"
+                    color="error"
+                    variant="outlined"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDeleteClick(building);
+                    }}
+                  >
+                    Delete
+                  </Button>
+                </Box>
                 </Box>
               </CardContent>
             </Card>
@@ -468,6 +531,38 @@ const Buildings: React.FC = () => {
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setOpenDialog(false)}>Cancel</Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Edit Building Dialog */}
+      <Dialog open={editDialogOpen} onClose={() => setEditDialogOpen(false)} maxWidth="md" fullWidth>
+        <DialogTitle>Edit Building</DialogTitle>
+        <DialogContent>
+          {buildingBeingEdited && (
+            <BuildingForm
+              building={buildingBeingEdited}
+              onSubmit={handleUpdateBuilding}
+              onCancel={() => setEditDialogOpen(false)}
+            />
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setEditDialogOpen(false)}>Close</Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={deleteDialogOpen} onClose={() => setDeleteDialogOpen(false)}>
+        <DialogTitle>Delete Building</DialogTitle>
+        <DialogContent>
+          <Typography>
+            Are you sure you want to delete
+            {buildingToDelete ? ` "${buildingToDelete.name}"` : ''}? This action cannot be undone.
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDeleteDialogOpen(false)}>Cancel</Button>
+          <Button color="error" variant="contained" onClick={handleConfirmDelete}>Delete</Button>
         </DialogActions>
       </Dialog>
     </Box>

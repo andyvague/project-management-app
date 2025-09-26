@@ -29,35 +29,44 @@ Address → Building → Buildout Pipeline → Tasks → Documents → Schedule
 - [x] Responsive design
 - [x] Dark mode support with theme switching
 
-### Phase 2: Integration & Automation
-- [ ] Connect to existing CRM/database
+### Phase 2: Integration & Automation ✅
+- [x] SQLite database with full CRUD API
+- [x] RESTful API endpoints for all operations
+- [x] Database persistence and data integrity
 - [ ] Document management system
 - [ ] Automated notifications
 - [ ] Reporting dashboard
 
 ### Phase 3: Advanced Features
 - [ ] Mobile app
-- [ ] API integrations
 - [ ] Advanced analytics
 - [ ] Multi-user permissions
+- [ ] Production deployment
 
 ## 🛠 Tech Stack
 
-- **Frontend**: React with TypeScript
-- **Backend**: Node.js with Express
-- **Database**: SQLite (development) / PostgreSQL (production)
+- **Frontend**: React with TypeScript + Vite
+- **Backend**: Node.js with Express + SQLite
+- **Database**: SQLite (development) / PostgreSQL (production ready)
 - **UI Framework**: Material-UI for consistent design
 - **State Management**: React Context + Hooks
+- **API**: RESTful API with full CRUD operations
 
 ## 📁 Project Structure
 
 ```
-src/
-├── components/     # React components
-├── models/        # Data models and types
-├── services/      # Business logic and API calls
-├── utils/         # Helper functions
-└── pages/         # Main application pages
+├── src/                    # Frontend React application
+│   ├── components/         # React components
+│   ├── context/           # React Context providers
+│   ├── pages/             # Main application pages
+│   ├── services/          # API service layer
+│   ├── types/             # TypeScript type definitions
+│   └── data/              # Sample data and loaders
+├── backend/               # Node.js API server
+│   ├── database/          # SQLite database and schema
+│   ├── routes/            # API route handlers
+│   └── scripts/           # Database seeding scripts
+└── package.json           # Frontend dependencies
 ```
 
 ## 🎯 What's Working Now
@@ -71,10 +80,11 @@ The system currently provides:
 - Progress visualization
 
 ✅ **Building Management**
-- Add, view, and manage buildings
+- Add, edit, and delete buildings with full CRUD operations
 - Search and filter capabilities
 - Status tracking and progress bars
 - Geographic information management
+- **Database persistence** - All changes saved to SQLite
 
 ✅ **Task Management**
 - View all buildout tasks
@@ -82,10 +92,12 @@ The system currently provides:
 - Task dependencies and assignments
 - Due date tracking and overdue alerts
 
-✅ **Sample Data**
-- 5 sample buildings with realistic information
-- 12 sample tasks across different stages
-- Realistic project timelines and assignments
+✅ **Database & API**
+- SQLite database with full schema
+- RESTful API endpoints for all operations
+- Database seeding with 6 sample buildings
+- Production-ready backend architecture
+- Easy migration path to PostgreSQL
 
 ✅ **Dark Mode Support**
 - Toggle between light and dark themes
@@ -105,24 +117,46 @@ The system currently provides:
 
 ## 🚀 Getting Started
 
-### Quick Start (Recommended)
+### Quick Start (Full Stack)
 ```bash
-# Make the setup script executable and run it
-chmod +x setup.sh
-./setup.sh
+# 1. Start the backend API server
+cd backend
+npm install
+npm run seed  # Seed database with sample data
+npm run dev   # Start API server on port 3001
+
+# 2. Start the frontend (in a new terminal)
+cd ..
+npm install
+npm run dev   # Start frontend on port 3000
 ```
 
 ### Manual Setup
 1. **Prerequisites**: Ensure you have Node.js 16+ installed
-2. **Install dependencies**: `npm install`
-3. **Start development server**: `npm run dev`
+2. **Backend Setup**:
+   ```bash
+   cd backend
+   npm install
+   npm run seed  # Initialize database with sample data
+   npm run dev   # Start API server
+   ```
+3. **Frontend Setup**:
+   ```bash
+   npm install
+   npm run dev   # Start development server
+   ```
 4. **Open your browser**: Navigate to http://localhost:3000
 
-### Alternative Commands
-- **Build for production**: `npm run build`
-- **Preview production build**: `npm run preview`
+### API Endpoints
+- **Health Check**: http://localhost:3001/api/health
+- **Buildings API**: http://localhost:3001/api/buildings
+- **Database**: SQLite file at `backend/database/mdu.db`
+
+### Development Commands
+- **Frontend build**: `npm run build`
 - **Type checking**: `npm run type-check`
 - **Linting**: `npm run lint`
+- **Backend restart**: `cd backend && npm run dev`
 
 ## 📊 Data Models
 
@@ -171,10 +205,30 @@ interface BuildoutTask {
 - Resource utilization
 - Customer satisfaction
 
+## 🚀 Production Deployment
+
+### Current Setup
+- **Development**: SQLite database with hot reload
+- **API Server**: Express.js on port 3001
+- **Frontend**: Vite dev server on port 3000
+
+### Production Ready
+- **Database**: Easy migration to PostgreSQL
+- **Backend**: PM2 process management ready
+- **Frontend**: Static build for CDN deployment
+- **API**: RESTful endpoints with error handling
+
+### Deployment Steps
+1. **Backend**: Copy `backend/` folder to server
+2. **Database**: Run `npm run seed` to initialize
+3. **Start**: `npm start` (or use PM2)
+4. **Frontend**: Build and deploy static files
+
 ## 🤝 Contributing
 
 This system is designed to evolve with Monkeybrains' needs. Key areas for enhancement:
-- Integration with existing tools
+- Document management system
 - Mobile accessibility
 - Advanced reporting
 - Automation workflows
+- Multi-user authentication

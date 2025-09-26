@@ -11,26 +11,24 @@ import {
   ListItem,
   ListItemText,
   ListItemIcon,
-  Paper,
 } from '@mui/material';
 import {
   Business as BusinessIcon,
   Assignment as TaskIcon,
-  Schedule as ScheduleIcon,
   Warning as WarningIcon,
   CheckCircle as CheckCircleIcon,
   TrendingUp as TrendingUpIcon,
 } from '@mui/icons-material';
 import { useBuildingContext } from '../../context/BuildingContext';
 import { useTaskContext } from '../../context/TaskContext';
-import { useUserContext } from '../../context/UserContext';
-import { DashboardStats, Building, BuildoutTask } from '../../types';
+// import { useUserContext } from '../../context/UserContext';
+import { DashboardStats } from '../../types';
 
 
 const Dashboard: React.FC = () => {
   const { state: buildingState } = useBuildingContext();
   const { state: taskState } = useTaskContext();
-  const { state: userState } = useUserContext();
+  // const { state: userState } = useUserContext();
   const [stats, setStats] = useState<DashboardStats>({
     totalBuildings: 0,
     activeBuildings: 0,

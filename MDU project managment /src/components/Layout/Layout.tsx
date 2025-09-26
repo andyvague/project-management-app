@@ -5,7 +5,6 @@ import {
   AppBar,
   Toolbar,
   List,
-  Typography,
   Divider,
   IconButton,
   ListItem,
@@ -14,7 +13,6 @@ import {
   ListItemText,
   useTheme,
   useMediaQuery,
-  Tooltip,
 } from '@mui/material';
 import {
   Menu as MenuIcon,
@@ -23,11 +21,9 @@ import {
   Assignment as TaskIcon,
   Description as DocumentIcon,
   Schedule as ScheduleIcon,
-  LightMode as LightModeIcon,
-  DarkMode as DarkModeIcon,
 } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { useThemeContext } from '../../context/ThemeContext';
+// import { useThemeContext } from '../../context/ThemeContext';
 import ThemeSwitcher from '../ThemeSwitcher/ThemeSwitcher';
 import MonkeybrainsLogo from '../Branding/MonkeybrainsLogo';
 import Footer from '../Layout/Footer';
@@ -46,7 +42,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const navigate = useNavigate();
   const location = useLocation();
-  const { mode, toggleTheme } = useThemeContext();
+  // const { mode, toggleTheme } = useThemeContext();
 
   const menuItems = [
     { text: 'Dashboard', icon: <DashboardIcon />, path: '/' },

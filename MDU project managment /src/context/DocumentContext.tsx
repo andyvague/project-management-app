@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useReducer, ReactNode, useEffect } from 'react';
 import { Document } from '../types';
-import { loadSampleData } from '../data/dataLoader';
+import { documentsApi, CreateDocumentData, UpdateDocumentData } from '../services/api';
 
 interface DocumentState {
   documents: Document[];
@@ -57,13 +57,14 @@ const documentReducer = (state: DocumentState, action: DocumentAction): Document
 interface DocumentContextType {
   state: DocumentState;
   dispatch: React.Dispatch<DocumentAction>;
-  addDocument: (document: Omit<Document, 'id' | 'createdAt' | 'updatedAt'>) => void;
-  updateDocument: (id: string, updates: Partial<Document>) => void;
-  deleteDocument: (id: string) => void;
+  addDocument: (documentData: CreateDocumentData, file?: File) => Promise<void>;
+  updateDocument: (id: string, updates: UpdateDocumentData) => Promise<void>;
+  deleteDocument: (id: string) => Promise<void>;
   getDocumentById: (id: string) => Document | undefined;
   getDocumentsByBuilding: (buildingId: string) => Document[];
   getDocumentsByType: (type: string) => Document[];
   getDocumentsByTag: (tag: string) => Document[];
+  refreshDocuments: () => Promise<void>;
 }
 
 const DocumentContext = createContext<DocumentContextType | undefined>(undefined);
@@ -83,40 +84,67 @@ interface DocumentProviderProps {
 export const DocumentProvider: React.FC<DocumentProviderProps> = ({ children }) => {
   const [state, dispatch] = useReducer(documentReducer, initialState);
 
-  // Load sample data on mount
   useEffect(() => {
-    if (state.documents.length === 0) {
-      const { documents } = loadSampleData();
-      documents.forEach(doc => {
-        dispatch({ type: 'ADD_DOCUMENT', payload: doc });
-      });
-    }
-  }, [state.documents.length]);
+    refreshDocuments();
+  }, []);
 
-  const addDocument = (documentData: Omit<Document, 'id' | 'createdAt' | 'updatedAt'>) => {
-    const newDocument: Document = {
-      ...documentData,
-      id: `document-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-    dispatch({ type: 'ADD_DOCUMENT', payload: newDocument });
+  const refreshDocuments = async () => {
+    dispatch({ type: 'SET_LOADING', payload: true });
+    dispatch({ type: 'SET_ERROR', payload: null });
+    try {
+      const documents = await documentsApi.getAll();
+      dispatch({ type: 'SET_DOCUMENTS', payload: documents });
+    } catch (error) {
+      console.error('Failed to load documents:', error);
+      dispatch({ type: 'SET_ERROR', payload: error instanceof Error ? error.message : 'Failed to load documents' });
+    } finally {
+      dispatch({ type: 'SET_LOADING', payload: false });
+    }
   };
 
-  const updateDocument = (id: string, updates: Partial<Document>) => {
-    const existingDocument = state.documents.find(doc => doc.id === id);
-    if (existingDocument) {
-      const updatedDocument: Document = {
-        ...existingDocument,
-        ...updates,
-        updatedAt: new Date(),
-      };
+  const addDocument = async (documentData: CreateDocumentData, file?: File) => {
+    dispatch({ type: 'SET_LOADING', payload: true });
+    dispatch({ type: 'SET_ERROR', payload: null });
+    try {
+      const newDocument = await documentsApi.create(documentData, file);
+      dispatch({ type: 'ADD_DOCUMENT', payload: newDocument });
+    } catch (error) {
+      console.error('Failed to create document:', error);
+      dispatch({ type: 'SET_ERROR', payload: error instanceof Error ? error.message : 'Failed to create document' });
+      throw error;
+    } finally {
+      dispatch({ type: 'SET_LOADING', payload: false });
+    }
+  };
+
+  const updateDocument = async (id: string, updates: UpdateDocumentData) => {
+    dispatch({ type: 'SET_LOADING', payload: true });
+    dispatch({ type: 'SET_ERROR', payload: null });
+    try {
+      const updatedDocument = await documentsApi.update(id, updates);
       dispatch({ type: 'UPDATE_DOCUMENT', payload: updatedDocument });
+    } catch (error) {
+      console.error('Failed to update document:', error);
+      dispatch({ type: 'SET_ERROR', payload: error instanceof Error ? error.message : 'Failed to update document' });
+      throw error;
+    } finally {
+      dispatch({ type: 'SET_LOADING', payload: false });
     }
   };
 
-  const deleteDocument = (id: string) => {
-    dispatch({ type: 'DELETE_DOCUMENT', payload: id });
+  const deleteDocument = async (id: string) => {
+    dispatch({ type: 'SET_LOADING', payload: true });
+    dispatch({ type: 'SET_ERROR', payload: null });
+    try {
+      await documentsApi.delete(id);
+      dispatch({ type: 'DELETE_DOCUMENT', payload: id });
+    } catch (error) {
+      console.error('Failed to delete document:', error);
+      dispatch({ type: 'SET_ERROR', payload: error instanceof Error ? error.message : 'Failed to delete document' });
+      throw error;
+    } finally {
+      dispatch({ type: 'SET_LOADING', payload: false });
+    }
   };
 
   const getDocumentById = (id: string): Document | undefined => {
@@ -145,6 +173,7 @@ export const DocumentProvider: React.FC<DocumentProviderProps> = ({ children }) 
     getDocumentsByBuilding,
     getDocumentsByType,
     getDocumentsByTag,
+    refreshDocuments,
   };
 
   return (
